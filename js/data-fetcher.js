@@ -8,8 +8,10 @@ class DataFetcher {
         const allSatellites = [];
         
         try {
+            console.log("Fetching satellite data for groups:", groups);
             for (const group of groups) {
                 const data = await this.fetchGroupData(group);
+                console.log(`Fetched ${data.length} satellites from ${group}`);
                 allSatellites.push(...data.map(sat => ({
                     ...sat,
                     category: this.categorizeSatellite(sat.OBJECT_NAME, group)
@@ -17,6 +19,7 @@ class DataFetcher {
             }
             
             this.lastUpdate = new Date();
+            console.log("Total satellites fetched:", allSatellites.length);
             return allSatellites;
             
         } catch (error) {
@@ -29,12 +32,20 @@ class DataFetcher {
         const cacheKey = `${group}_${Math.floor(Date.now() / 3600000)}`;
         
         if (this.cache.has(cacheKey)) {
+            console.log(`Using cached data for ${group}`);
             return this.cache.get(cacheKey);
         }
 
         try {
+            console.log(`Fetching data for group: ${group}`);
             const response = await fetch(`https://celestrak.org/NORAD/elements/gp.php?GROUP=${group}&FORMAT=json`);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            
             const data = await response.json();
+            console.log(`Successfully fetched ${data.length} satellites from ${group}`);
             
             this.cache.set(cacheKey, data);
             return data;
@@ -45,7 +56,7 @@ class DataFetcher {
     }
 
     categorizeSatellite(name, group) {
-        const nameLower = name.toLowerCase();
+        const nameLower = name ? name.toLowerCase() : '';
         
         if (group === 'stations' || nameLower.includes('iss') || nameLower.includes('zarya')) {
             return 'stations';
@@ -61,11 +72,11 @@ class DataFetcher {
 
     getColorByCategory(category) {
         const colors = {
-            'stations': 0xff6b6b,
-            'gps': 0x4ecdc4,
-            'weather': 0x45b7d1,
-            'communications': 0x96ceb4,
-            'other': 0xdda0dd
+            'stations': 0xff6b6b,      // Red
+            'gps': 0x4ecdc4,           // Teal
+            'weather': 0x45b7d1,       // Blue
+            'communications': 0x96ceb4, // Green
+            'other': 0xdda0dd           // Plum
         };
         return colors[category] || colors.other;
     }

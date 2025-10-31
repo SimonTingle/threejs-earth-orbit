@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Satellite Data Inspector</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .group { margin: 20px 0; padding: 15px; border: 1px solid #ccc; }
+        button { padding: 10px 15px; margin: 5px; }
+        pre { background: #f5f5f5; padding: 10px; overflow: auto; }
+    </style>
+</head>
+<body>
+    <h1>Satellite Data Inspector</h1>
+    
+    <div>
+        <button onclick="fetchData('stations')">Fetch Stations</button>
+        <button onclick="fetchData('gps-ops')">Fetch GPS</button>
+        <button onclick="fetchData('weather')">Fetch Weather</button>
+        <button onclick="fetchAll()">Fetch All</button>
+    </div>
+    
+    <div id="results"></div>
+
+    <script>
+        async function fetchData(group) {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = `<h2>${group}</h2><p>Loading...</p>`;
+            
+            try {
+                const response = await fetch(`https://celestrak.org/NORAD/elements/gp.php?GROUP=${group}&FORMAT=json`);
+                const data = await response.json();
+                
+                resultsDiv.innerHTML = `
+                    <h2>${group}</h2>
+                    <p><strong>Count:</strong> ${data.length} satellites</p>
+                    <p><strong>Status:</strong> ${response.status} ${response.statusText}</p>
+                    <details>
+                        <summary>View Data (first 5 items)</summary>
+                        <pre>${JSON.stringify(data.slice(0, 5), null, 2)}</pre>
+                    </details>
+                `;
+            } catch (error) {
+                resultsDiv.innerHTML = `
+                    <h2>${group}</h2>
+                    <p style="color: red;"><strong>Error:</strong> ${error.message}</p>
+                `;
+            }
+        }
+        
+        async function fetchAll() {
+            const groups = ['stations', 'gps-ops', 'weather'];
+            for (const group of groups) {
+                await fetchData(group);
+                await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second between requests
+            }
+        }
+    </script>
+</body>
+</html>

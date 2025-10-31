@@ -8,10 +8,14 @@ class SatelliteSimulator {
         this.dataFetcher = null;
         this.controls = null;
         
+        // Make global for debugging
+        window.satelliteSim = this;
+        
         this.init();
     }
 
     init() {
+        console.log("Initializing Satellite Simulator...");
         this.setupScene();
         this.setupCamera();
         this.setupRenderer();
@@ -19,8 +23,13 @@ class SatelliteSimulator {
         this.setupEventListeners();
         
         this.dataFetcher = new DataFetcher();
+        window.dataFetcher = this.dataFetcher; // Make global for debugging
+        
         this.earth = new Earth(this.scene);
         this.satelliteManager = new SatelliteManager(this.scene, this.dataFetcher);
+        
+        // Make global for debugging
+        window.satelliteManager = this.satelliteManager;
         
         this.loadSatellites();
         this.animate();
@@ -114,6 +123,7 @@ class SatelliteSimulator {
     }
 
     async loadSatellites() {
+        console.log("Loading satellites...");
         await this.satelliteManager.loadSatellites();
     }
 
@@ -128,5 +138,6 @@ class SatelliteSimulator {
 }
 
 window.addEventListener('load', () => {
+    console.log("Page loaded, starting simulator...");
     new SatelliteSimulator();
 });
