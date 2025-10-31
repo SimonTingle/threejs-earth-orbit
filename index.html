@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Satellite Orbit Simulator</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div id="container"></div>
+    <div id="controls">
+        <div class="control-group">
+            <label>
+                <input type="checkbox" id="showOrbits" checked> Show Orbits
+            </label>
+            <label>
+                <input type="checkbox" id="showLabels" checked> Show Labels
+            </label>
+        </div>
+        <div class="control-group">
+            <button id="refreshData">Refresh Satellite Data</button>
+        </div>
+        <div class="dataset-legend">
+            <h3>Satellite Categories</h3>
+            <div class="legend-item">
+                <div class="color-box" style="background-color: #ff6b6b;"></div>
+                <span>Space Stations</span>
+            </div>
+            <div class="legend-item">
+                <div class="color-box" style="background-color: #4ecdc4;"></div>
+                <span>GPS Satellites</span>
+            </div>
+            <div class="legend-item">
+                <div class="color-box" style="background-color: #45b7d1;"></div>
+                <span>Weather Satellites</span>
+            </div>
+            <div class="legend-item">
+                <div class="color-box" style="background-color: #96ceb4;"></div>
+                <span>Communications</span>
+            </div>
+        </div>
+    </div>
+    <div id="loading">Loading satellite data...</div>
+    
+    <script src="lib/three.min.js"></script>
+    <script src="lib/satellite.min.js"></script>
+    <script src="js/data-fetcher.js"></script>
+    <script src="js/earth.js"></script>
+    <script src="js/satellite.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>
