@@ -9,11 +9,14 @@ body {
     background: #000;
     color: #fff;
     overflow: hidden;
+    margin: 0;
+    padding: 0;
 }
 
 #container {
     width: 100vw;
     height: 100vh;
+    position: relative;
 }
 
 #controls {
@@ -25,6 +28,8 @@ body {
     border-radius: 10px;
     backdrop-filter: blur(10px);
     border: 1px solid rgba(255, 255, 255, 0.1);
+    z-index: 1000;
+    min-width: 200px;
 }
 
 .control-group {
@@ -35,6 +40,7 @@ body {
     display: block;
     margin: 5px 0;
     cursor: pointer;
+    font-size: 14px;
 }
 
 .control-group input {
@@ -49,6 +55,8 @@ button {
     border-radius: 5px;
     cursor: pointer;
     font-size: 14px;
+    width: 100%;
+    margin-top: 5px;
 }
 
 button:hover {
@@ -88,6 +96,8 @@ button:hover {
     padding: 20px;
     border-radius: 10px;
     display: none;
+    z-index: 2000;
+    text-align: center;
 }
 
 .orbit-path {
@@ -96,12 +106,15 @@ button:hover {
 
 .satellite-label {
     position: absolute;
-    background: rgba(0, 0, 0, 0.7);
+    background: rgba(0, 0, 0, 0.8);
     color: white;
-    padding: 5px 10px;
-    border-radius: 3px;
-    font-size: 12px;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 11px;
     pointer-events: none;
     white-space: nowrap;
     transform: translate(-50%, -100%);
+    z-index: 1000;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
