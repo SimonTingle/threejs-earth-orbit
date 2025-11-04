@@ -1,0 +1,138 @@
+class Earth {
+    constructor(scene) {
+        this.scene = scene;
+        this.earth = null;
+        this.clouds = null;
+        this.stars = null;
+        this.sunLight = null;
+        this.earthRotation = 0;
+        this.init();
+    }
+
+    init() {
+        // Create Earth with texture
+        const earthGeometry = new THREE.SphereGeometry(1, 64, 64);
+        
+        // Simple colored Earth (since we can't easily load textures in this setup)
+        const earthMaterial = new THREE.MeshPhongMaterial({
+            color: 0x2266ff,
+            specular: 0x333333,
+            shininess: 5,
+            transparent: true,
+            opacity: 0.9
+        });
+
+        this.earth = new THREE.Mesh(earthGeometry, earthMaterial);
+        this.scene.add(this.earth);
+
+        // Add clouds layer
+        const cloudGeometry = new THREE.SphereGeometry(1.005, 64, 64);
+        const cloudMaterial = new THREE.MeshPhongMaterial({
+            color: 0xffffff,
+            transparent: true,
+            opacity: 0.3,
+            wireframe: false
+        });
+
+        this.clouds = new THREE.Mesh(cloudGeometry, cloudMaterial);
+        this.scene.add(this.clouds);
+
+        // Add stars background
+        this.createStars();
+
+        // Add ambient light
+        const ambientLight = new THREE.AmbientLight(0x333333);
+        this.scene.add(ambientLight);
+
+        // Add directional sun light for day/night cycle
+        this.sunLight = new THREE.DirectionalLight(0xffffff, 1);
+        this.sunLight.position.set(5, 3, 5);
+        this.scene.add(this.sunLight);
+
+        // Add point lights for better illumination
+        const pointLight = new THREE.PointLight(0xffffff, 0.5);
+        pointLight.position.set(5, 3, 5);
+        this.scene.add(pointLight);
+    }
+
+    createStars() {
+        const starGeometry = new THREE.BufferGeometry();
+        const starMaterial = new THREE.PointsMaterial({
+            color: 0xffffff,
+            size: 0.02,
+            sizeAttenuation: true
+        });
+
+        const starVertices = [];
+        for (let i = 0; i < 10000; i++) {
+            const x = (Math.random() - 0.5) * 2000;
+            const y = (Math.random() - 0.5) * 2000;
+            const z = (Math.random() - 0.5) * 2000;
+            starVertices.push(x, y, z);
+        }
+
+        starGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starVertices, 3));
+        this.stars = new THREE.Points(starGeometry, starMaterial);
+        this.scene.add(this.stars);
+    }
+
+    // Update day/night cycle
+    updateDayNight() {
+        const now = new Date();
+        
+        // Earth rotates 360 degrees in 24 hours (15 degrees per hour)
+        const hours = now.getHours() + now.getMinutes() / 60 + now.getSeconds() / 3600;
+        const earthRotationDegrees = (hours * 15) % 360;
+        
+        // Update Earth rotation for day/night effect
+        this.earthRotation = earthRotationDegrees * Math.PI / 180;
+        
+        // Rotate the sun light to simulate day/night cycle
+        const sunAngle = this.earthRotation;
+        this.sunLight.position.x = Math.cos(sunAngle) * 5;
+        this.sunLight.position.z = Math.sin(sunAngle) * 5;
+        
+        // Update light intensity based on time (darker at night)
+        const isDay = (hours >= 6 && hours <= 18);
+        this.sunLight.intensity = isDay ? 1 : 0.3;
+    }
+
+    // Add simple continent outlines for visual reference
+    addContinentOutlines() {
+        // Simple continent-like shapes using lines
+        const continents = [];
+        
+        // North America outline (simplified)
+        const naPoints = [];
+        for (let i = 0; i <= 20; i++) {
+            const lat = (i / 20) * Math.PI - Math.PI/2;
+            const lon = -100 * Math.PI/180 + Math.sin(lat * 2) * 20 * Math.PI/180;
+            const x = Math.cos(lat) * Math.cos(lon);
+            const y = Math.sin(lat);
+            const z = Math.cos(lat) * Math.sin(lon);
+            naPoints.push(new THREE.Vector3(x * 1.01, y * 1.01, z * 1.01));
+        }
+        
+        const naGeometry = new THREE.BufferGeometry().setFromPoints(naPoints);
+        const naMaterial = new THREE.LineBasicMaterial({ color: 0x00ff00, transparent: true, opacity: 0.5 });
+        const northAmerica = new THREE.Line(naGeometry, naMaterial);
+        this.scene.add(northAmerica);
+        continents.push(northAmerica);
+        
+        return continents;
+    }
+
+    rotate() {
+        if (this.earth) {
+            // Earth rotates once every 24 hours (slow rotation)
+            this.earth.rotation.y += 0.001;
+        }
+        if (this.clouds) {
+            // Clouds rotate slightly faster and in different direction
+            this.clouds.rotation.y += 0.0015;
+        }
+        
+        // Update day/night cycle
+        this.updateDayNight();
+    }
+}

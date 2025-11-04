@@ -58,6 +58,9 @@ class SatelliteSimulator {
         this.renderer = new THREE.WebGLRenderer({ antialias: true });
         this.renderer.setSize(window.innerWidth, window.innerHeight);
         this.renderer.setPixelRatio(window.devicePixelRatio);
+        // Enable shadows for better day/night effect
+        this.renderer.shadowMap.enabled = true;
+        this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         document.getElementById('container').appendChild(this.renderer.domElement);
     }
 
@@ -162,7 +165,7 @@ class SatelliteSimulator {
         document.getElementById('debugLabels').addEventListener('click', () => {
             console.log("=== Debug Labels Clicked ===");
             if (window.satelliteManager) {
-                window.satelliteManager.debugLabels();
+                console.log("Debug info:", window.satelliteManager.debugInfo());
             }
             console.log("Current camera position:", this.camera.position);
         });
@@ -221,7 +224,7 @@ document.addEventListener('keydown', (e) => {
     } else if (e.key === 'd' || e.key === 'D') {
         // Debug key
         if (window.satelliteManager) {
-            window.satelliteManager.debugLabels();
+            console.log("Debug info:", window.satelliteManager.debugInfo());
         }
     }
 });

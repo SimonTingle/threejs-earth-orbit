@@ -1,4 +1,5 @@
-class Earth {
+// Advanced Earth visualization with day/night terminator
+class AdvancedEarth {
     constructor(scene) {
         this.scene = scene;
         this.earth = null;
@@ -6,15 +7,16 @@ class Earth {
         this.atmosphere = null;
         this.stars = null;
         this.sunLight = null;
+        this.terminatorLine = null;
         this.time = 0;
         this.init();
     }
 
     init() {
-        // Create Earth sphere with better materials
+        // Create Earth sphere
         const earthGeometry = new THREE.SphereGeometry(1, 64, 64);
         
-        // Enhanced Earth material
+        // Enhanced Earth material with better coloring
         const earthMaterial = new THREE.MeshPhongMaterial({
             color: 0x2266ff,
             specular: 0x222222,
@@ -26,38 +28,38 @@ class Earth {
         this.earth = new THREE.Mesh(earthGeometry, earthMaterial);
         this.scene.add(this.earth);
 
-        // Create atmosphere for better visual effect
+        // Create atmosphere
         const atmosphereGeometry = new THREE.SphereGeometry(1.02, 64, 64);
         const atmosphereMaterial = new THREE.MeshPhongMaterial({
             color: 0x88ccff,
             transparent: true,
-            opacity: 0.3,
+            opacity: 0.1,
             specular: 0x555555
         });
 
         this.atmosphere = new THREE.Mesh(atmosphereGeometry, atmosphereMaterial);
         this.scene.add(this.atmosphere);
 
-        // Create clouds layer
+        // Create clouds
         const cloudGeometry = new THREE.SphereGeometry(1.01, 64, 64);
         const cloudMaterial = new THREE.MeshPhongMaterial({
             color: 0xffffff,
             transparent: true,
-            opacity: 0.6,
+            opacity: 0.2,
             wireframe: false
         });
 
         this.clouds = new THREE.Mesh(cloudGeometry, cloudMaterial);
         this.scene.add(this.clouds);
 
-        // Create stars background
+        // Create stars
         this.createStars();
 
         // Add lighting
         const ambientLight = new THREE.AmbientLight(0x333333);
         this.scene.add(ambientLight);
 
-        // Main directional light (sun) for day/night cycle
+        // Main directional light (sun)
         this.sunLight = new THREE.DirectionalLight(0xffffff, 1);
         this.sunLight.position.set(5, 3, 5);
         this.sunLight.castShadow = true;
@@ -89,21 +91,17 @@ class Earth {
         this.scene.add(this.stars);
     }
 
-    // Update day/night cycle and Earth rotation
-    update() {
-        const now = new Date();
+    update(time) {
+        this.time = time || Date.now();
         
-        // Rotate Earth (once per 24 hours in real time)
+        // Rotate Earth (once per 24 hours)
         if (this.earth) {
-            // Earth completes one rotation every 24 hours (86400000 milliseconds)
-            const earthRotation = (now.getTime() / 86400000) * Math.PI * 2;
-            this.earth.rotation.y = earthRotation;
+            this.earth.rotation.y = (this.time / 86400000) * Math.PI * 2;
         }
         
-        // Rotate clouds slightly faster for realistic effect
+        // Rotate clouds slightly faster
         if (this.clouds) {
-            const cloudRotation = (now.getTime() / 80000000) * Math.PI * 2;
-            this.clouds.rotation.y = cloudRotation;
+            this.clouds.rotation.y = (this.time / 80000000) * Math.PI * 2;
         }
         
         // Rotate atmosphere with Earth
@@ -117,28 +115,56 @@ class Earth {
 
     updateSunPosition() {
         const now = new Date();
-        // Calculate sun position based on current time
-        const hours = now.getHours() + now.getMinutes() / 60 + now.getSeconds() / 3600;
+        const hours = now.getHours() + now.getMinutes() / 60;
         
-        // Position sun in a circular orbit around Earth
+        // Position sun based on time of day
         const sunAngle = (hours / 24) * Math.PI * 2;
         const sunDistance = 10;
         
         if (this.sunLight) {
             this.sunLight.position.x = Math.cos(sunAngle) * sunDistance;
             this.sunLight.position.z = Math.sin(sunAngle) * sunDistance;
-            // Add some vertical movement for more realistic effect
             this.sunLight.position.y = Math.sin(sunAngle * 0.5) * sunDistance * 0.3;
-            
-            // Adjust light intensity based on time (darker at night)
-            const isDay = (hours >= 6 && hours <= 18);
-            this.sunLight.intensity = isDay ? 1 : 0.3;
         }
     }
 
-    rotate() {
-        // This method is kept for backward compatibility
-        // but the update() method should be called instead
-        this.update();
+    // Add simple continent markers
+    addContinentMarkers() {
+        const markers = [];
+        
+        // Simple marker points for major continents
+        const continentPoints = [
+            { lat: 40, lon: -100, name: "North America", color: 0xff0000 }, // Red
+            { lat: -15, lon: -60, name: "South America", color: 0x00ff00 }, // Green
+            { lat: 50, lon: 10, name: "Europe", color: 0x0000ff }, // Blue
+            { lat: 35, lon: 105, name: "Asia", color: 0xffff00 }, // Yellow
+            { lat: -25, lon: 135, name: "Australia", color: 0xff00ff }, // Magenta
+            { lat: 0, lon: 20, name: "Africa", color: 0x00ffff } // Cyan
+        ];
+        
+        continentPoints.forEach(point => {
+            const latRad = point.lat * Math.PI / 180;
+            const lonRad = point.lon * Math.PI / 180;
+            
+            const x = Math.cos(latRad) * Math.cos(lonRad) * 1.01;
+            const y = Math.sin(latRad) * 1.01;
+            const z = Math.cos(latRad) * Math.sin(lonRad) * 1.01;
+            
+            const markerGeometry = new THREE.SphereGeometry(0.02, 8, 8);
+            const markerMaterial = new THREE.MeshBasicMaterial({ 
+                color: point.color,
+                transparent: true,
+                opacity: 0.7
+            });
+            
+            const marker = new THREE.Mesh(markerGeometry, markerMaterial);
+            marker.position.set(x, y, z);
+            marker.userData = { continent: point.name };
+            
+            this.scene.add(marker);
+            markers.push(marker);
+        });
+        
+        return markers;
     }
 }

@@ -8,7 +8,6 @@ class SatelliteManager {
         this.showLabels = false;
         this.processingErrors = 0;
         this.labels = new Map();
-        this.referenceTime = Date.now(); // Reference time for consistent phase calculation
     }
 
     async loadSatellites() {
@@ -58,21 +57,18 @@ class SatelliteManager {
 
             processedCount++;
             try {
-                const satellite = this.createSatelliteObject(satData, index);
+                const satellite = this.createSatelliteObject(satData);
                 if (satellite) {
                     const orbitPath = this.createSimpleOrbitPath(satData);
                     
-                    const satId = satData.NORAD_CAT_ID || `sat_${Date.now()}_${index}`;
-                    this.satellites.set(satId, {
+                    this.satellites.set(satData.NORAD_CAT_ID || `sat_${index}`, {
                         object: satellite,
                         data: satData,
-                        position: new THREE.Vector3(),
-                        index: index,
-                        categoryId: satData.category // Store category for positioning
+                        position: new THREE.Vector3()
                     });
 
                     if (orbitPath) {
-                        this.orbitPaths.set(satId, orbitPath);
+                        this.orbitPaths.set(satData.NORAD_CAT_ID || `sat_${index}`, orbitPath);
                         if (this.showOrbits) {
                             this.scene.add(orbitPath);
                         }
@@ -90,14 +86,13 @@ class SatelliteManager {
         });
         
         console.log(`Processed ${processedCount} satellites, created ${createdCount}, errors: ${this.processingErrors}`);
-        console.log(`Satellites stored in map: ${this.satellites.size}`);
         
         if (this.showLabels && createdCount > 0) {
             setTimeout(() => this.createAllLabels(), 100);
         }
     }
 
-    createSatelliteObject(satData, index) {
+    createSatelliteObject(satData) {
         try {
             if (!satData || !satData.OBJECT_NAME) {
                 console.warn('Invalid satellite data');
@@ -114,18 +109,11 @@ class SatelliteManager {
             
             const satellite = new THREE.Mesh(geometry, material);
             
-            const position = this.calculateRealPosition(satData, new Date(), index);
+            const position = this.calculateRealPosition(satData, new Date());
             if (position) {
                 satellite.position.copy(position);
             } else {
-                // Better default positioning based on category
-                const defaultRadius = this.getDefaultRadius(satData.category);
-                const angle = (index * 0.5) % (Math.PI * 2);
-                satellite.position.set(
-                    Math.cos(angle) * defaultRadius,
-                    Math.sin(angle * 0.3) * 0.5,
-                    Math.sin(angle) * defaultRadius
-                );
+                satellite.position.set(1.5, 0, 0);
             }
             
             satellite.userData = { satData: satData };
@@ -137,35 +125,26 @@ class SatelliteManager {
         }
     }
 
-    getDefaultRadius(category) {
-        switch(category) {
-            case 'stations': return 1.1;
-            case 'gps': return 3.0;
-            case 'weather': return 2.5;
-            case 'communications': return 1.2;
-            default: return 1.5;
-        }
-    }
-
     createSimpleOrbitPath(satData) {
         try {
+            // Determine orbit characteristics based on category
             let radius, inclination;
             
             switch(satData.category) {
                 case 'stations':
-                    radius = 1.05;
-                    inclination = 51.6;
+                    radius = 1.05; // ISS altitude
+                    inclination = 51.6; // ISS inclination
                     break;
                 case 'gps':
-                    radius = 3.0;
-                    inclination = 55;
+                    radius = 3.0; // GPS altitude (MEO)
+                    inclination = 55; // GPS inclination
                     break;
                 case 'weather':
-                    radius = 4.0;
-                    inclination = 98;
+                    radius = 4.0; // Weather satellite altitude
+                    inclination = 98; // Sun-synchronous
                     break;
                 case 'communications':
-                    radius = 1.2;
+                    radius = 1.2; // LEO comms
                     inclination = 45;
                     break;
                 default:
@@ -178,7 +157,7 @@ class SatelliteManager {
             
             for (let i = 0; i <= segments; i++) {
                 const angle = (i / segments) * Math.PI * 2;
-                const rad = radius + (Math.sin(angle * 3) * 0.05);
+                const rad = radius + (Math.sin(angle * 3) * 0.05); // Slight eccentricity
                 const x = Math.cos(angle) * rad;
                 const z = Math.sin(angle) * rad;
                 const y = Math.sin(inclination * Math.PI / 180) * Math.sin(angle) * 0.3;
@@ -248,37 +227,37 @@ class SatelliteManager {
         console.log(`Created ${labelCount} labels`);
     }
 
-    // WORKING POSITION CALCULATION WITH PROPER DISTRIBUTION
-    calculateRealPosition(satData, time, index) {
+    // REAL-TIME ORBITAL CALCULATION
+    calculateRealPosition(satData, time) {
         try {
+            // Calculate orbital period based on category (in minutes)
             let orbitalPeriodMinutes;
             let baseRadius;
             let inclination;
             
-            // Set parameters based on satellite category
             switch(satData.category) {
-                case 'stations': // ISS-like - fast LEO
-                    orbitalPeriodMinutes = 90;
+                case 'stations': // ISS-like
+                    orbitalPeriodMinutes = 90; // 90 minutes per orbit
                     baseRadius = 1.05;
                     inclination = 51.6;
                     break;
-                case 'gps': // GPS - Medium Earth Orbit
-                    orbitalPeriodMinutes = 720;
+                case 'gps': // GPS-like
+                    orbitalPeriodMinutes = 720; // 12 hours per orbit
                     baseRadius = 3.0;
                     inclination = 55;
                     break;
-                case 'weather': // Weather satellites
-                    orbitalPeriodMinutes = 100;
+                case 'weather': // Weather satellite-like
+                    orbitalPeriodMinutes = 100; // Medium orbit
                     baseRadius = 2.5;
                     inclination = 98;
                     break;
-                case 'communications': // LEO communications
-                    orbitalPeriodMinutes = 95;
+                case 'communications': // Comms satellite-like
+                    orbitalPeriodMinutes = 95; // LEO comms
                     baseRadius = 1.2;
                     inclination = 45;
                     break;
                 default: // Other satellites
-                    orbitalPeriodMinutes = 90 + (Math.random() * 200);
+                    orbitalPeriodMinutes = 90 + (Math.random() * 300); // 90-390 min
                     baseRadius = 1.5;
                     inclination = 45;
             }
@@ -286,26 +265,14 @@ class SatelliteManager {
             // Convert to milliseconds
             const orbitalPeriodMs = orbitalPeriodMinutes * 60 * 1000;
             
-            // Calculate orbital phase with unique offset for each satellite
-            const elapsedMs = time.getTime();
+            // Calculate position in orbit (0-1)
+            const startTime = new Date(2025, 0, 1).getTime(); // Reference start time
+            const elapsedMs = time.getTime() - startTime;
             const orbitProgress = (elapsedMs % orbitalPeriodMs) / orbitalPeriodMs;
+            const angle = orbitProgress * Math.PI * 2;
             
-            // Add unique phase offset based on index and category
-            let phaseOffset;
-            if (satData.NORAD_CAT_ID) {
-                // Use NORAD ID for consistent but unique phase
-                phaseOffset = (satData.NORAD_CAT_ID * 0.01) % (Math.PI * 2);
-            } else {
-                // Use index for phase offset
-                phaseOffset = (index * 0.3) % (Math.PI * 2);
-            }
-            
-            const angle = (orbitProgress * Math.PI * 2) + phaseOffset;
-            
-            // Calculate 3D position with proper orbital mechanics
-            const radiusVariation = Math.sin(angle * 2) * 0.02; // Slight eccentricity
-            const radius = baseRadius + radiusVariation;
-            
+            // Calculate 3D position
+            const radius = baseRadius + (Math.sin(angle * 2) * 0.02); // Slight eccentricity
             const x = Math.cos(angle) * radius;
             const z = Math.sin(angle) * radius;
             const y = Math.sin(inclination * Math.PI / 180) * Math.sin(angle * 0.7) * 0.3;
@@ -313,7 +280,7 @@ class SatelliteManager {
             return new THREE.Vector3(x, y, z);
             
         } catch (error) {
-            console.error('Error calculating real position for', satData.OBJECT_NAME, ':', error);
+            console.error('Error calculating real position:', error);
             return null;
         }
     }
@@ -323,7 +290,7 @@ class SatelliteManager {
         
         this.satellites.forEach((satInfo, id) => {
             try {
-                const position = this.calculateRealPosition(satInfo.data, now, satInfo.index || 0);
+                const position = this.calculateRealPosition(satInfo.data, now);
                 if (position && satInfo.object) {
                     satInfo.object.position.copy(position);
                 }
@@ -352,8 +319,8 @@ class SatelliteManager {
                         const y = (-vector.y * 0.5 + 0.5) * rect.height + rect.top;
                         
                         if (vector.z <= 1 && vector.z >= -1) {
-                            label.style.left = x + 'px';
-                            label.style.top = y + 'px';
+                            label.style.left = `${x}px`;
+                            label.style.top = `${y}px`;
                             label.style.display = 'block';
                         } else {
                             label.style.display = 'none';
@@ -411,6 +378,7 @@ class SatelliteManager {
         this.processingErrors = 0;
     }
     
+    // Debug methods
     getSatelliteCount() {
         return this.satellites.size;
     }
@@ -428,15 +396,17 @@ class SatelliteManager {
         };
     }
     
+    // Test different orbital speeds
     testOrbitalSpeeds() {
         console.log("=== Orbital Speed Test ===");
         const now = new Date();
         
+        // Test one satellite of each type
         this.satellites.forEach((satInfo, id) => {
             if (satInfo.data && satInfo.data.category) {
                 const category = satInfo.data.category;
-                const position = this.calculateRealPosition(satInfo.data, now, satInfo.index || 0);
-                console.log(category + ': Position ' + (position ? 'calculated' : 'failed'));
+                const position = this.calculateRealPosition(satInfo.data, now);
+                console.log(`${category}: Position ${position ? 'calculated' : 'failed'}`);
             }
         });
     }

@@ -30,6 +30,7 @@ body {
     border: 1px solid rgba(255, 255, 255, 0.1);
     z-index: 1000;
     min-width: 200px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
 }
 
 .control-group {
@@ -57,6 +58,7 @@ button {
     font-size: 14px;
     width: 100%;
     margin-top: 5px;
+    transition: background 0.3s;
 }
 
 button:hover {
@@ -70,6 +72,7 @@ button:hover {
 .dataset-legend h3 {
     margin-bottom: 10px;
     font-size: 16px;
+    color: #45b7d1;
 }
 
 .legend-item {
@@ -84,6 +87,7 @@ button:hover {
     height: 15px;
     margin-right: 10px;
     border-radius: 3px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 #loading {
@@ -98,6 +102,7 @@ button:hover {
     display: none;
     z-index: 2000;
     text-align: center;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
 }
 
 .orbit-path {
@@ -108,13 +113,26 @@ button:hover {
     position: absolute;
     background: rgba(0, 0, 0, 0.8);
     color: white;
-    padding: 3px 8px;
-    border-radius: 4px;
-    font-size: 11px;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 10px;
     pointer-events: none;
     white-space: nowrap;
     transform: translate(-50%, -100%);
     z-index: 1000;
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    display: none;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* Add some visual effects */
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at center, rgba(20, 20, 40, 0.8) 0%, rgba(0, 0, 20, 1) 100%);
+    z-index: -1;
 }

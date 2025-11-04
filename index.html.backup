@@ -57,15 +57,10 @@
     <script src="js/cache-viewer.js"></script>
     <script src="js/label-test.js"></script>
     <script src="js/debug-labels.js"></script>
-    <script src="js/system-debug.js"></script>
-    <script src="js/satellite-inspector.js"></script>
-    <script src="js/threejs-test.js"></script>
-    <script src="js/earth-debug.js"></script>
-    <script src="js/storage-check.js"></script>
-    <script src="js/position-debug.js"></script>    
-    <script>
-        // Update time display
-        function updateTimeDisplay() {
+    <script src="js/system-debug.js"></script>    
+    <script src="js/satellite-inspector.js"></script>    <script>
+    <script src="js/threejs-test.js"></script>        // Update time display
+    <script src="js/earth-debug.js"></script>        function updateTimeDisplay() {
             const now = new Date();
             document.getElementById('utc-time').textContent = now.toUTCString().split(' ')[4];
             document.getElementById('local-time').textContent = now.toLocaleTimeString();
